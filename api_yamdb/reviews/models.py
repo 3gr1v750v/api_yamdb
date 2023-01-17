@@ -20,12 +20,12 @@ class User(AbstractUser):
     ]
 
     bio = models.TextField(
-        'Биография',
+        verbose_name='Биография',
         blank=True,
         null=True,
     )
     role = models.CharField(
-        'Роль пользователя',
+        verbose_name='Роль пользователя',
         max_length=20,
         choices=USER_ROLE,
         default=USER
