@@ -1,12 +1,17 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from .validators import username_validator
+
 
 class User(AbstractUser):
     """
     Переопределение модели User. Модель расширена свойствами role и bio.
-    Также переопределен метод save для координации роли пользователя и прав
-    администрирования сайта.
+    Любой пользователь может получить одну из 3х ролей управления. Только
+    superuser получает права доступа к административной части сайта, при этом
+    изменение его пользовательской роли не влияет вышеуказанные права.
+    Обычный пользователь получив роль 'admin' может осуществлять управление
+    пользователя через API без доступа к административной части сайта.
     """
 
     USER = 'user'
@@ -19,11 +24,27 @@ class User(AbstractUser):
         (MODERATOR, 'Модератор')
     ]
 
+    username = models.CharField(
+        verbose_name='Пользователь',
+        blank=False,
+        unique=True,
+        max_length=150,
+        validators=[username_validator]
+    )
+
+    email = models.EmailField(
+        verbose_name='Почтовый адрес',
+        blank=False,
+        unique=True,
+        max_length=254,
+    )
+
     bio = models.TextField(
         verbose_name='Биография',
         blank=True,
         null=True,
     )
+
     role = models.CharField(
         verbose_name='Роль пользователя',
         max_length=20,
@@ -31,17 +52,34 @@ class User(AbstractUser):
         default=USER
     )
 
-    def save(self, *args, **kwargs):
-        """
-        'Пользователь' получает доступ к разделу администрирования при
-        изменении роли на 'Администратор', так и наоборот.
-        'Суперпользователь' получает права администратора. Даже если изменить
-        пользовательскую роль 'суперпользователя'— это не лишит его прав
-        администратора.
-        """
+    first_name = models.CharField(
+        verbose_name="Имя пользователя",
+        max_length=150,
+        blank=True,
+        null=True,
+    )
 
-        if self.role == self.ADMIN or self.is_superuser:
-            self.is_staff = True
+    last_name = models.CharField(
+        verbose_name="Фамилия пользователя",
+        max_length=150,
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
+    @property
+    def is_admin(self):
+        if self.role == self.ADMIN:
+            return True
         else:
-            self.is_staff = False
-        super().save(*args, **kwargs)
+            return False
+
+    @property
+    def is_moderator(self):
+        if self.role == self.MODERATOR:
+            return True
+        else:
+            return False
