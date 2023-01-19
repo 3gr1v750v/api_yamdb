@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .validators import username_validator
+from .validators import username_validator, year_create_validator, \
+    slug_validator
 
 
 class User(AbstractUser):
@@ -83,3 +84,82 @@ class User(AbstractUser):
             return True
         else:
             return False
+
+
+class Category(models.Model):
+    name = models.CharField(
+        verbose_name='Название категории',
+        null=False,
+        blank=False,
+        unique=True,
+        max_length=256
+    )
+    slug = models.SlugField(
+        unique=True,
+        max_length=50,
+        validators=[slug_validator]
+    )
+
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
+
+class Genre(models.Model):
+    name = models.CharField(
+        verbose_name='Название жанра',
+        null=False,
+        blank=False,
+        unique=True,
+        max_length=256
+    )
+    slug = models.SlugField(
+        unique=True,
+        max_length=50,
+        validators=[slug_validator]
+    )
+
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+
+
+class Title(models.Model):
+    name = models.CharField(
+        verbose_name='Название произведения',
+        null=False,
+        blank=False,
+        unique=True,
+        max_length=256
+    )
+    description = models.TextField(
+        verbose_name='Описание произведения',
+        blank=True,
+        null=True,
+    )
+    year = models.IntegerField(
+        verbose_name='Год выпуска',
+        null=False,
+        blank=False,
+        validators=[year_create_validator]
+    )
+    category = models.ForeignKey(
+        Category,
+        related_name='titles',
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    genres = models.ManyToManyField(
+        Genre,
+        through='GenreTitle',
+        blank=False,
+    )
+
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+
+
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
