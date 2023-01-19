@@ -24,3 +24,9 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
+
+
+class ConfirmationCodeSerailizer(serializers.Serializer):
+    """Сериализатор для отправки пользователю кода подтверждения."""
+    username = serializers.CharField()
+    email = serializers.EmailField()
