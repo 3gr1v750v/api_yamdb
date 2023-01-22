@@ -58,6 +58,30 @@ class ReviewSerializer(serializers.ModelSerializer):
         return review
 
 
+class TitleViewSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True, required=True)
+    category = CategorySerializer(required=True, )
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+        )
+        read_only_fields = (
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+        )
+
+    def get_rating(self, obj):
+        rating = 0
+        reviews = Review.objects.filter(title=obj)
+        if reviews:
+            for review in reviews:
+                rating += review.score
+            return rating // reviews.count()
+        return None
+
+
 class TitleSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True, required=False)
     category = serializers.SlugRelatedField(read_only=True, slug_field='slug')
