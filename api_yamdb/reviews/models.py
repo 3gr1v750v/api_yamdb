@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import username_validator, year_create_validator, \
@@ -163,3 +164,45 @@ class Title(models.Model):
 class GenreTitle(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
+
+
+class Review(models.Model):
+    author = models.ForeignKey(
+        User,
+        verbose_name='Автор',
+        on_delete=models.CASCADE,
+        related_name='reviews')
+    title = models.ForeignKey(
+        Title,
+        verbose_name='Произведение',
+        on_delete=models.CASCADE,
+        related_name='reviews')
+    text = models.TextField('Отзыв')
+    pub_date = models.DateTimeField(
+        'Дата добавления', auto_now_add=True, db_index=True)
+    score = models.PositiveSmallIntegerField(
+        'Рейтинг', validators=[MinValueValidator(0), MaxValueValidator(10)]
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["author", "title"], name="unique_review"
+            )
+        ]
+
+
+class Comment(models.Model):
+    author = models.ForeignKey(
+        User,
+        verbose_name='Автор',
+        on_delete=models.CASCADE,
+        related_name='comments')
+    review = models.ForeignKey(
+        Review,
+        verbose_name='Отзыв',
+        on_delete=models.CASCADE,
+        related_name='comments')
+    text = models.TextField('Текст')
+    pub_date = models.DateTimeField(
+        'Дата добавления', auto_now_add=True, db_index=True)
