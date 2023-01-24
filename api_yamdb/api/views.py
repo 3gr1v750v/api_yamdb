@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from reviews.models import Title, Category, Genre, User
+from .utils import code_generator
 
 from .filters import TitleFilter
 from .permissions import IsAdminOrReadOnly, IsProfileOwner, IsAdminOnly
@@ -61,11 +62,10 @@ class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
 
 class ConfirmationCodeView(APIView):
     """
-    Проверка наличия регистрации на сайте у пользователя и соответствие
-    почтового адреса тому, что был использован при регистрации.
-    Ранее зарегистрированный пользователь получит письмо с кодом
-    подтверждения для дальнейшего получения токена.
-    Эндпоинт: `/api/v1/auth/signup/`
+    Самостоятельная регистрация пользователя на портале.
+    Если данные прошли валидацию новый пользователь будет зарегистрирован и
+    получит письмо с кодом подтверждения. Если пользователь был
+    зарегистрирован ранее, он также получит письмо с кодом подтверждения.
     """
 
     permission_classes = (permissions.AllowAny,)
@@ -74,27 +74,27 @@ class ConfirmationCodeView(APIView):
         username = request.data.get("username")
         email = request.data.get("email")
         user = User.objects.filter(username=username, email=email)
+        if username:
+            confirmation_code = code_generator(username)
+        if user:
+            confirmation_code_email(email, confirmation_code)
+            return Response(request.data, status=status.HTTP_200_OK)
         serializer = ConfirmationCodeSerailizer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        if serializer.is_valid() and user:
-            confirmation_code = username.encode("utf-8").hex()[:10]
+        if serializer.is_valid():
+            serializer.save()
             confirmation_code_email(email, confirmation_code)
-            return Response(
-                {
-                    "success": (f"Вам отправлено письмо с кодом "
-                                f"подтверждения на адрес {email}")
-                },
-                status=status.HTTP_200_OK,
-            )
-        return Response(
-            {"email": (f"Запрошенного username или email "
-                       f"не зарегистрировано.")
-             },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    Эндпоинт для управления пользователями.
+    Можно осуществлять добавление и поиск по пользователям.
+    Пользователь может дополнить данные о себе через обращение к эндпоинту
+    /me/.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOnly, permissions.IsAuthenticated)
@@ -116,6 +116,5 @@ class UserViewSet(viewsets.ModelViewSet):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save(role=request.user.role)
-            return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
