@@ -1,17 +1,11 @@
-import django_filters
+from django_filters import FilterSet, AllValuesFilter
 
 from reviews.models import Category, Genre, Title
 
 
-class TitleFilter(django_filters.FilterSet):
-    category = django_filters.ModelChoiceFilter(
-        field_name="category__slug",
-        queryset=Category.objects.all()
-    )
-    genre = django_filters.ModelChoiceFilter(
-        field_name="genre__slug",
-        queryset=Genre.objects.all()
-    )
+class TitleFilter(FilterSet):
+    category = AllValuesFilter(field_name='category__slug')
+    genre = AllValuesFilter(field_name='genre__slug')
 
     class Meta:
         model = Title
