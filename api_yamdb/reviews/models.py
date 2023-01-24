@@ -71,6 +71,12 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username_email'
+            )
+        ]
 
     @property
     def is_admin(self):
@@ -96,6 +102,7 @@ class Category(models.Model):
         max_length=256
     )
     slug = models.SlugField(
+        verbose_name='Slug категории',
         unique=True,
         max_length=50,
         validators=[slug_validator]
@@ -115,6 +122,7 @@ class Genre(models.Model):
         max_length=256
     )
     slug = models.SlugField(
+        verbose_name='Slug жанра',
         unique=True,
         max_length=50,
         validators=[slug_validator]
@@ -148,12 +156,13 @@ class Title(models.Model):
         Category,
         related_name='titles',
         on_delete=models.SET_NULL,
-        null=True
+        null=True,
+        verbose_name='Категория произведения',
     )
-    genres = models.ManyToManyField(
+    genre = models.ManyToManyField(
         Genre,
         through='GenreTitle',
-        blank=False,
+        verbose_name='Жанры произведения',
     )
 
     class Meta:
@@ -162,8 +171,20 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
-    genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
-    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        verbose_name='Жанр',
+    )
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        verbose_name='Произведение',
+    )
+
+    class Meta:
+        verbose_name = 'Жанры произведений'
+        verbose_name_plural = 'Жанры произведений'
 
 
 class Review(models.Model):
@@ -206,3 +227,4 @@ class Comment(models.Model):
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
+
