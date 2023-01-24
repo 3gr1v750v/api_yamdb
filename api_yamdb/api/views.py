@@ -8,18 +8,16 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 
-from reviews.models import Title, Category, Genre, User
+from reviews.models import Title, Category, Genre, Comment, Review, User
 from .utils import code_generator
 
 from .filters import TitleFilter
 from .permissions import IsAdminOrReadOnly, IsProfileOwner, IsAdminOnly
-from .serializers import (
-    TitleSerializer,
-    CategorySerializer,
-    GenreSerializer,
-    ConfirmationCodeSerailizer,
-    UserSerializer)
+from .serializers import (TitleSerializer, CategorySerializer,
+                          GenreSerializer, CommentSerializer,
+                          ReviewSerializer, ConfirmationCodeSerailizer, UserSerializer)
 from .email import confirmation_code_email
+
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -37,6 +35,36 @@ class TitleViewSet(viewsets.ModelViewSet):
                 Category, slug=self.request.data['category']
             ),
         )
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    pagination_class = PageNumberPagination
+    permission_classes = (
+        IsAdminOrReadOnly,
+    )
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        new_queryset = Comment.objects.filter(
+            review__title=title_id,
+            review=review_id
+        )
+        return new_queryset
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, title__id=title_id, id=review_id)
+        serializer.save(author=self.request.user, review=review)
+
+    def perform_update(self, serializer):
+        return super(CommentViewSet, self).perform_update(serializer)
+
+    def perform_destroy(self, serializer):
+        return super(CommentViewSet, self).perform_destroy(serializer)
 
 
 class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -60,6 +88,31 @@ class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    pagination_class = PageNumberPagination
+    permission_classes = (
+        IsAdminOrReadOnly,
+    )
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        new_queryset = Review.objects.filter(title=title_id)
+        return new_queryset
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        serializer.save(author=self.request.user, title=title)
+
+    def perform_update(self, serializer):
+        return super(ReviewViewSet, self).perform_update(serializer)
+
+    def perform_destroy(self, serializer):
+        return super(ReviewViewSet, self).perform_destroy(serializer)
 
 class ConfirmationCodeView(APIView):
     """
@@ -119,3 +172,4 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save(role=request.user.role)
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+

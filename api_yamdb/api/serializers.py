@@ -1,18 +1,29 @@
 
+from django.db import IntegrityError
+
 from rest_framework import serializers, status
+from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-
-from reviews.models import Title, Category, Genre, GenreTitle, User
+from reviews.models import Title, Category, Genre, GenreTitle, User, Comment, Review
 from .utils import code_generator
-
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
     return {'refresh': str(refresh), 'access': str(refresh.access_token)}
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Comment
+        read_only_fields = ('review',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -27,6 +38,56 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
         lookup_field = 'slug'
         fields = ('pk', 'name', 'slug')
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+        slug_field='username'
+    )
+    title = serializers.HiddenField(default=None)
+
+    class Meta:
+        fields = '__all__'
+        model = Review
+        read_only_fields = ('title',)
+        validators = [UniqueTogetherValidator(
+            queryset=Review.objects.all(),
+            fields=('title', 'author')
+        )]
+
+    def create(self, validated_data):
+        try:
+            review = Review.objects.create(**validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError(
+                {'error': 'Нельзя оставлять два ревью на одно произведение.'})
+        return review
+
+
+class TitleViewSerializer(serializers.ModelSerializer):
+    genre = GenreSerializer(many=True, required=True)
+    category = CategorySerializer(required=True, )
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+        )
+        read_only_fields = (
+            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+        )
+
+    def get_rating(self, obj):
+        rating = 0
+        reviews = Review.objects.filter(title=obj)
+        if reviews:
+            for review in reviews:
+                rating += review.score
+            return rating // reviews.count()
+        return None
 
 
 class TitleSerializer(serializers.ModelSerializer):
