@@ -1,10 +1,11 @@
+
 from rest_framework import serializers, status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 
-from reviews.models import Title, Category, Genre, User
+from reviews.models import Title, Category, Genre, GenreTitle, User
 from .utils import code_generator
 
 
@@ -18,22 +19,43 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         lookup_field = 'slug'
-        fields = '__all__'
+        fields = ('pk', 'name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         lookup_field = 'slug'
-        fields = '__all__'
+        fields = ('pk', 'name', 'slug')
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    genres = GenreSerializer(many=True, required=False)
-    category = serializers.SlugRelatedField(read_only=True, slug_field='slug')
+    genre = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='slug'
+    )
+    category = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='slug'
+    )
+
+    def create(self, validated_data):
+        if 'genre' not in self.initial_data:
+            title = Title.objects.create(**validated_data)
+            return title
+        else:
+            genres = self.initial_data['genre']
+            title = Title.objects.create(**validated_data)
+            for genre in genres:
+                current_genre = get_object_or_404(Genre, slug=genre)
+                GenreTitle.objects.create(
+                    title=title, genre=current_genre
+                    )
+            return title
 
     class Meta:
-        fields = '__all__'
+        fields = ('pk', 'name', 'description', 'year', 'category', 'genre')
         model = Title
 
 

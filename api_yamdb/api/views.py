@@ -7,6 +7,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework import status
 
+
 from reviews.models import Title, Category, Genre, User
 from .utils import code_generator
 
@@ -24,17 +25,17 @@ from .email import confirmation_code_email
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = ()
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
-    filter_class = TitleFilter
+    filterset_class = TitleFilter
     http_method_names = ['patch', 'get', 'post', 'delete']
 
     def perform_create(self, serializer):
         serializer.save(
             category=get_object_or_404(
                 Category, slug=self.request.data['category']
-            )
+            ),
         )
 
 
@@ -43,7 +44,7 @@ class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
-    permission_classes = ()
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -54,7 +55,7 @@ class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
-    permission_classes = ()
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
