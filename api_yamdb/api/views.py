@@ -10,17 +10,23 @@ from rest_framework import status
 
 from reviews.models import Title, Category, Genre, Comment, Review, User
 from .utils import code_generator
-
 from .filters import TitleFilter
 from .permissions import IsAdminOrReadOnly, IsProfileOwner, IsAdminOnly
 from .serializers import (TitleSerializer, CategorySerializer,
                           GenreSerializer, CommentSerializer,
-                          ReviewSerializer, ConfirmationCodeSerailizer, UserSerializer)
+                          ReviewSerializer, ConfirmationCodeSerailizer,
+                          UserSerializer, TitleViewSerializer)
 from .email import confirmation_code_email
 
 
-
 class TitleViewSet(viewsets.ModelViewSet):
+    """
+    Эндпоинт для работы с моделью Title.
+    Разрешено частичное обновление, добавление, удаление,
+    получение списка всех элементов и одного элемента.
+    Доступен всем для чтения и администратору для модификации.
+    Подключена фильтрация по полям: category, genre, name, year.
+    """
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -30,11 +36,27 @@ class TitleViewSet(viewsets.ModelViewSet):
     http_method_names = ['patch', 'get', 'post', 'delete']
 
     def perform_create(self, serializer):
+        """Добавляет категорию к произведению при сохранении."""
         serializer.save(
             category=get_object_or_404(
                 Category, slug=self.request.data['category']
             ),
         )
+
+    def perform_update(self, serializer):
+        """Обновляет категорию у произведения при изменениии."""
+        serializer.save(
+            category=get_object_or_404(
+                Category, slug=self.request.data['category']
+            ),
+        )
+
+    def get_serializer_class(self):
+        """Определяет какой сериализатор будет использоваться
+        для разных типов запроса."""
+        if self.request.method == 'GET':
+            return TitleViewSerializer
+        return TitleSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -69,6 +91,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
                       mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """
+    Эндпоинт для работы с моделью Category.
+    Разрешено добавление, удаление и получение списка всех элементов.
+    Доступен всем для чтения и администратору для модификации.
+    Подключена фильтрация по полю: name
+    """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
@@ -80,6 +108,12 @@ class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
 
 class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
                    mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """
+       Эндпоинт для работы с моделью Genre.
+       Разрешено добавление, удаление и получение списка всех элементов.
+       Доступен всем для чтения и администратору для модификации.
+       Подключена фильтрация по полю: name
+    """
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
@@ -87,7 +121,6 @@ class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     pagination_class = PageNumberPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -113,6 +146,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, serializer):
         return super(ReviewViewSet, self).perform_destroy(serializer)
+
 
 class ConfirmationCodeView(APIView):
     """
@@ -172,4 +206,3 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save(role=request.user.role)
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-

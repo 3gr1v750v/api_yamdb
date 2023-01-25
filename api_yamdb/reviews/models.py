@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import username_validator, year_create_validator, \
-    slug_validator
+    slug_validator, name_title_validator
 
 
 class User(AbstractUser):
@@ -94,6 +94,7 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
+    """Модель, описывающая категории произведений."""
     name = models.CharField(
         verbose_name='Название категории',
         null=False,
@@ -114,6 +115,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Модель, описывающая жанры произведений."""
     name = models.CharField(
         verbose_name='Название жанра',
         null=False,
@@ -134,12 +136,14 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Модель, описывающая произведения."""
     name = models.CharField(
         verbose_name='Название произведения',
         null=False,
         blank=False,
         unique=True,
-        max_length=256
+        max_length=256,
+        validators=[name_title_validator]
     )
     description = models.TextField(
         verbose_name='Описание произведения',
@@ -227,4 +231,3 @@ class Comment(models.Model):
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
-

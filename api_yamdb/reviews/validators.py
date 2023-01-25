@@ -32,3 +32,13 @@ def slug_validator(value):
     if not re.search(pattern, value):
         raise ValidationError('Только буквы латинского алфавита,'
                               ' цифры, тире и нижнее подчеркивание')
+
+
+def name_title_validator(value):
+    """
+    Валидатор для проверки длинны названия произведения.
+    """
+    max_length = 256
+    if len(value) > max_length:
+        raise ValidationError('Длинна названия не должна превышать '
+                              '256 символов.')

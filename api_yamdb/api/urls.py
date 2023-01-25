@@ -2,9 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-
 from .serializers import EmailAuthSerializer
-
 from .views import (
     UserViewSet,
     TitleViewSet,

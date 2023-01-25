@@ -1,19 +1,19 @@
-
 from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 
-from rest_framework import serializers, status
+from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 
 from reviews.models import Title, Category, Genre, GenreTitle, User, Comment, Review
 from .utils import code_generator
+
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
     return {'refresh': str(refresh), 'access': str(refresh.access_token)}
+
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
@@ -27,17 +27,19 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор модели Category."""
     class Meta:
         model = Category
         lookup_field = 'slug'
-        fields = ('pk', 'name', 'slug')
+        fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Genre."""
     class Meta:
         model = Genre
         lookup_field = 'slug'
-        fields = ('pk', 'name', 'slug')
+        fields = ('name', 'slug')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -91,32 +93,18 @@ class TitleViewSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Title (кроме метода GET)."""
     genre = serializers.SlugRelatedField(
         many=True,
-        read_only=True,
-        slug_field='slug'
+        queryset=Genre.objects.all(),
+        slug_field='slug',
     )
-    category = serializers.SlugRelatedField(
+    category = CategorySerializer(
         read_only=True,
-        slug_field='slug'
     )
-
-    def create(self, validated_data):
-        if 'genre' not in self.initial_data:
-            title = Title.objects.create(**validated_data)
-            return title
-        else:
-            genres = self.initial_data['genre']
-            title = Title.objects.create(**validated_data)
-            for genre in genres:
-                current_genre = get_object_or_404(Genre, slug=genre)
-                GenreTitle.objects.create(
-                    title=title, genre=current_genre
-                    )
-            return title
 
     class Meta:
-        fields = ('pk', 'name', 'description', 'year', 'category', 'genre')
+        fields = ('id', 'name', 'description', 'year', 'category', 'genre')
         model = Title
 
 
