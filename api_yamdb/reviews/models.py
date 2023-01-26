@@ -141,7 +141,7 @@ class Title(models.Model):
         verbose_name='Название произведения',
         null=False,
         blank=False,
-        unique=True,
+        unique=False,
         max_length=256,
         validators=[name_title_validator]
     )
