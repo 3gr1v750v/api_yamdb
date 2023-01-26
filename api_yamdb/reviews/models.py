@@ -192,6 +192,7 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
+    """Модель, описывающая работу отзывов"""
     title = models.ForeignKey(
         Title,
         verbose_name='Произведение',
@@ -233,6 +234,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Модель, описывающая работу комментариев"""
     review = models.ForeignKey(
         Review,
         verbose_name='Отзыв',
