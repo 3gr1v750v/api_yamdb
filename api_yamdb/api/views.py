@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from reviews.models import Title, Category, Genre, Review, User
 
+from reviews.models import Title, Category, Genre, Review, User
 from .utils import code_generator
 from .filters import TitleFilter
 from .permissions import (IsAdminOrReadOnly, IsProfileOwner, IsAdminOnly,
