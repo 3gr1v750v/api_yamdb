@@ -13,6 +13,7 @@ from .utils import code_generator
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Review."""
     title = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True,
@@ -140,6 +141,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Comment."""
     review = serializers.SlugRelatedField(
         slug_field='text',
         read_only=True
