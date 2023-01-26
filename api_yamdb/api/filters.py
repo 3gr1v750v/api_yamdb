@@ -1,6 +1,6 @@
 from django_filters import FilterSet, AllValuesFilter
 
-from reviews.models import Category, Genre, Title
+from reviews.models import Title
 
 
 class TitleFilter(FilterSet):
