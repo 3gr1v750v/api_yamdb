@@ -122,7 +122,7 @@ python manage.py migrate
 5. Загрузите тестовые данные:
 
 ```
-python manage.py csv_to_sqlite
+python manage.py load_data_from_csv
 ```
 6. Запуститe проект:
 
