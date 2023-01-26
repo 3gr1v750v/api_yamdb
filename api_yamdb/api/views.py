@@ -1,27 +1,32 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-
+from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework import viewsets, filters, mixins, permissions
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.views import APIView
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from reviews.models import Category, Genre, Review, Title, User
 
-from reviews.models import Title, Category, Genre, Review, User
-
-from reviews.models import Title, Category, Genre, Review, User
-from .utils import code_generator
-from .filters import TitleFilter
-from .permissions import (IsAdminOrReadOnly, IsProfileOwner, IsAdminOnly,
-                          IsOwnerModeratorAdminOrReadOnly)
-from .serializers import (TitleSerializer, CategorySerializer,
-                          GenreSerializer, CommentSerializer,
-                          ReviewSerializer, ConfirmationCodeSerailizer,
-                          UserSerializer,
-                          TitleViewSerializer)
 from .email import confirmation_code_email
+from .filters import TitleFilter
+from .permissions import (
+    IsAdminOnly,
+    IsAdminOrReadOnly,
+    IsOwnerModeratorAdminOrReadOnly,
+    IsProfileOwner,
+)
+from .serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    ConfirmationCodeSerailizer,
+    GenreSerializer,
+    ReviewSerializer,
+    TitleSerializer,
+    TitleViewSerializer,
+    UserSerializer,
+)
+from .utils import code_generator
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -32,6 +37,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     Доступен всем для чтения и администратору для модификации.
     Подключена фильтрация по полям: category, genre, name, year.
     """
+
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -64,14 +70,23 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                      mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class ListCreateDestroyViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    pass
+
+
+class CategoryViewSet(ListCreateDestroyViewSet):
     """
     Эндпоинт для работы с моделью Category.
     Разрешено добавление, удаление и получение списка всех элементов.
     Доступен всем для чтения и администратору для модификации.
     Подключена фильтрация по полю: name
     """
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
@@ -81,14 +96,14 @@ class CategoryViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     search_fields = ('name',)
 
 
-class GenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                   mixins.DestroyModelMixin, viewsets.GenericViewSet):
+class GenreViewSet(ListCreateDestroyViewSet):
     """
-       Эндпоинт для работы с моделью Genre.
-       Разрешено добавление, удаление и получение списка всех элементов.
-       Доступен всем для чтения и администратору для модификации.
-       Подключена фильтрация по полю: name
+    Эндпоинт для работы с моделью Genre.
+    Разрешено добавление, удаление и получение списка всех элементов.
+    Доступен всем для чтения и администратору для модификации.
+    Подключена фильтрация по полю: name
     """
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
@@ -133,6 +148,7 @@ class UserViewSet(viewsets.ModelViewSet):
     Пользователь может дополнить данные о себе через обращение к эндпоинту
     /me/.
     """
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOnly, permissions.IsAuthenticated)
@@ -145,7 +161,7 @@ class UserViewSet(viewsets.ModelViewSet):
         methods=['get', 'patch'],
         detail=False,
         url_name='get_user',
-        permission_classes=(IsProfileOwner, permissions.IsAuthenticated)
+        permission_classes=(IsProfileOwner, permissions.IsAuthenticated),
     )
     def me(self, request):
         if request.method == 'PATCH':
@@ -160,9 +176,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """ViewSet для отправки отзывов."""
+
     serializer_class = ReviewSerializer
-    permission_classes = [IsOwnerModeratorAdminOrReadOnly,
-                          IsAuthenticatedOrReadOnly]
+    permission_classes = [
+        IsOwnerModeratorAdminOrReadOnly,
+        IsAuthenticatedOrReadOnly,
+    ]
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
@@ -177,9 +196,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     """ViewSet для отправки комментария."""
+
     serializer_class = CommentSerializer
-    permission_classes = [IsOwnerModeratorAdminOrReadOnly,
-                          IsAuthenticatedOrReadOnly]
+    permission_classes = [
+        IsOwnerModeratorAdminOrReadOnly,
+        IsAuthenticatedOrReadOnly,
+    ]
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get("review_id"))

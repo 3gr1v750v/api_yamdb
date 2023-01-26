@@ -11,5 +11,4 @@ class Migration(migrations.Migration):
         ('reviews', '0003_user_unique_username_email'),
     ]
 
-    operations = [
-    ]
+    operations = []

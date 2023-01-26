@@ -2,8 +2,12 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .validators import username_validator, year_create_validator, \
-    slug_validator, name_title_validator
+from .validators import (
+    name_title_validator,
+    slug_validator,
+    username_validator,
+    year_create_validator,
+)
 
 
 class User(AbstractUser):
@@ -23,7 +27,7 @@ class User(AbstractUser):
     USER_ROLE = [
         (USER, 'Пользователь'),
         (ADMIN, 'Администратор'),
-        (MODERATOR, 'Модератор')
+        (MODERATOR, 'Модератор'),
     ]
 
     username = models.CharField(
@@ -31,7 +35,7 @@ class User(AbstractUser):
         blank=False,
         unique=True,
         max_length=150,
-        validators=[username_validator]
+        validators=[username_validator],
     )
 
     email = models.EmailField(
@@ -51,7 +55,7 @@ class User(AbstractUser):
         verbose_name='Роль пользователя',
         max_length=20,
         choices=USER_ROLE,
-        default=USER
+        default=USER,
     )
 
     first_name = models.CharField(
@@ -73,8 +77,7 @@ class User(AbstractUser):
         verbose_name_plural = "Пользователи"
         constraints = [
             models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_username_email'
+                fields=['username', 'email'], name='unique_username_email'
             )
         ]
 
@@ -95,18 +98,19 @@ class User(AbstractUser):
 
 class Category(models.Model):
     """Модель, описывающая категории произведений."""
+
     name = models.CharField(
         verbose_name='Название категории',
         null=False,
         blank=False,
         unique=True,
-        max_length=256
+        max_length=256,
     )
     slug = models.SlugField(
         verbose_name='Slug категории',
         unique=True,
         max_length=50,
-        validators=[slug_validator]
+        validators=[slug_validator],
     )
 
     class Meta:
@@ -116,18 +120,19 @@ class Category(models.Model):
 
 class Genre(models.Model):
     """Модель, описывающая жанры произведений."""
+
     name = models.CharField(
         verbose_name='Название жанра',
         null=False,
         blank=False,
         unique=True,
-        max_length=256
+        max_length=256,
     )
     slug = models.SlugField(
         verbose_name='Slug жанра',
         unique=True,
         max_length=50,
-        validators=[slug_validator]
+        validators=[slug_validator],
     )
 
     class Meta:
@@ -137,13 +142,14 @@ class Genre(models.Model):
 
 class Title(models.Model):
     """Модель, описывающая произведения."""
+
     name = models.CharField(
         verbose_name='Название произведения',
         null=False,
         blank=False,
         unique=False,
         max_length=256,
-        validators=[name_title_validator]
+        validators=[name_title_validator],
     )
     description = models.TextField(
         verbose_name='Описание произведения',
@@ -154,7 +160,7 @@ class Title(models.Model):
         verbose_name='Год выпуска',
         null=False,
         blank=False,
-        validators=[year_create_validator]
+        validators=[year_create_validator],
     )
     category = models.ForeignKey(
         Category,
@@ -193,11 +199,12 @@ class GenreTitle(models.Model):
 
 class Review(models.Model):
     """Модель, описывающая работу отзывов"""
+
     title = models.ForeignKey(
         Title,
         verbose_name='Произведение',
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
     text = models.TextField(
         verbose_name='Текст',
@@ -206,19 +213,17 @@ class Review(models.Model):
         User,
         verbose_name='Автор',
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
     score = models.PositiveSmallIntegerField(
         verbose_name='Рейтинг',
         validators=[
             MinValueValidator(1, 'Допустимы значения от 1 до 10'),
-            MaxValueValidator(10, 'Допустимы значения от 1 до 10')
-        ]
+            MaxValueValidator(10, 'Допустимы значения от 1 до 10'),
+        ],
     )
     pub_date = models.DateTimeField(
-        verbose_name='Дата публикации',
-        auto_now_add=True,
-        db_index=True
+        verbose_name='Дата публикации', auto_now_add=True, db_index=True
     )
 
     class Meta:
@@ -227,19 +232,19 @@ class Review(models.Model):
         ordering = ['pub_date']
         constraints = [
             models.UniqueConstraint(
-                fields=['title', 'author'],
-                name='unique_review'
+                fields=['title', 'author'], name='unique_review'
             ),
         ]
 
 
 class Comment(models.Model):
     """Модель, описывающая работу комментариев"""
+
     review = models.ForeignKey(
         Review,
         verbose_name='Отзыв',
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
     )
     text = models.TextField(
         verbose_name='Текст',
@@ -248,12 +253,10 @@ class Comment(models.Model):
         User,
         verbose_name='Пользователь',
         on_delete=models.CASCADE,
-        related_name='comments'
+        related_name='comments',
     )
     pub_date = models.DateTimeField(
-        verbose_name='Дата публикации',
-        auto_now_add=True,
-        db_index=True
+        verbose_name='Дата публикации', auto_now_add=True, db_index=True
     )
 
     class Meta:
