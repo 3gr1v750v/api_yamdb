@@ -1,69 +1,64 @@
-
-from django.db import IntegrityError
-
-from rest_framework import serializers, status
-from rest_framework.validators import UniqueTogetherValidator
+from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import ValidationError
+
 from django.shortcuts import get_object_or_404
 
-from reviews.models import Title, Category, Genre, GenreTitle, User, Comment, Review
+from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from reviews.models import Title, Category, Genre, User, Comment, Review
 from .utils import code_generator
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    title = serializers.SlugRelatedField(
+        slug_field='name',
+        read_only=True,
+    )
+    author = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        slug_field='username',
+        read_only=True
+    )
+
+    def validate(self, data):
+        request = self.context['request']
+        author = request.user
+        title_id = self.context['view'].kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        if request.method == 'POST':
+            if Review.objects.filter(title=title, author=author).exists():
+                raise ValidationError('Вы не можете добавить более'
+                                      'одного отзыва на произведение')
+        return data
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
     return {'refresh': str(refresh), 'access': str(refresh.access_token)}
 
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
-    )
-
-    class Meta:
-        fields = '__all__'
-        model = Comment
-        read_only_fields = ('review',)
-
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор модели Category."""
     class Meta:
         model = Category
         lookup_field = 'slug'
-        fields = ('pk', 'name', 'slug')
+        fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Genre."""
     class Meta:
         model = Genre
         lookup_field = 'slug'
-        fields = ('pk', 'name', 'slug')
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault(),
-        slug_field='username'
-    )
-    title = serializers.HiddenField(default=None)
-
-    class Meta:
-        fields = '__all__'
-        model = Review
-        read_only_fields = ('title',)
-        validators = [UniqueTogetherValidator(
-            queryset=Review.objects.all(),
-            fields=('title', 'author')
-        )]
-
-    def create(self, validated_data):
-        try:
-            review = Review.objects.create(**validated_data)
-        except IntegrityError:
-            raise serializers.ValidationError(
-                {'error': 'Нельзя оставлять два ревью на одно произведение.'})
-        return review
+        fields = ('name', 'slug')
 
 
 class TitleViewSerializer(serializers.ModelSerializer):
@@ -91,32 +86,18 @@ class TitleViewSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Title (кроме метода GET)."""
     genre = serializers.SlugRelatedField(
         many=True,
-        read_only=True,
-        slug_field='slug'
+        queryset=Genre.objects.all(),
+        slug_field='slug',
     )
-    category = serializers.SlugRelatedField(
+    category = CategorySerializer(
         read_only=True,
-        slug_field='slug'
     )
-
-    def create(self, validated_data):
-        if 'genre' not in self.initial_data:
-            title = Title.objects.create(**validated_data)
-            return title
-        else:
-            genres = self.initial_data['genre']
-            title = Title.objects.create(**validated_data)
-            for genre in genres:
-                current_genre = get_object_or_404(Genre, slug=genre)
-                GenreTitle.objects.create(
-                    title=title, genre=current_genre
-                    )
-            return title
 
     class Meta:
-        fields = ('pk', 'name', 'description', 'year', 'category', 'genre')
+        fields = ('id', 'name', 'description', 'year', 'category', 'genre')
         model = Title
 
 
@@ -156,3 +137,18 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    review = serializers.SlugRelatedField(
+        slug_field='text',
+        read_only=True
+    )
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
