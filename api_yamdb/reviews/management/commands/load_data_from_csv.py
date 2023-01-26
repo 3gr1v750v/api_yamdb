@@ -3,7 +3,6 @@ import os
 
 from django.core.management import BaseCommand
 from django.db import IntegrityError
-from django.shortcuts import get_object_or_404
 from reviews.models import (
     Category,
     Comment,
