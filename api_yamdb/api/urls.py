@@ -30,17 +30,16 @@ router.register(
 )
 router.register('users', UserViewSet, basename='users')
 
+auth_patterns = [
+    path('signup/',
+         ConfirmationCodeView.as_view(),
+         name='user_obtain_code'),
+    path('token/',
+         TokenObtainPairView.as_view(serializer_class=EmailAuthSerializer),
+         name='user_obtain_token')
+]
 
 urlpatterns = [
     path('v1/', include(router.urls)),
-    path(
-        "v1/auth/signup/",
-        ConfirmationCodeView.as_view(),
-        name='user_obtain_code',
-    ),
-    path(
-        'v1/auth/token/',
-        TokenObtainPairView.as_view(serializer_class=EmailAuthSerializer),
-        name='user_obtain_token',
-    ),
+    path('v1/auth/', include(auth_patterns)),
 ]
