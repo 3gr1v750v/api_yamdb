@@ -134,3 +134,13 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+PATH_CSV_FILES = {
+    'category': os.path.join(BASE_DIR, 'static/data/category.csv'),
+    'genre': os.path.join(BASE_DIR, 'static/data/genre.csv'),
+    'titles': os.path.join(BASE_DIR, 'static/data/titles.csv'),
+    'genre_title': os.path.join(BASE_DIR, 'static/data/genre_title.csv'),
+    'users': os.path.join(BASE_DIR, 'static/data/users.csv'),
+    'review': os.path.join(BASE_DIR, 'static/data/review.csv'),
+    'comments': os.path.join(BASE_DIR, 'static/data/comments.csv'),
+}

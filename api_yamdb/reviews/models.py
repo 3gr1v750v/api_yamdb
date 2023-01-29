@@ -3,8 +3,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import (
-    name_title_validator,
-    slug_validator,
     username_validator,
     year_create_validator,
 )
@@ -110,7 +108,6 @@ class Category(models.Model):
         verbose_name='Slug категории',
         unique=True,
         max_length=50,
-        validators=[slug_validator],
     )
 
     class Meta:
@@ -132,7 +129,6 @@ class Genre(models.Model):
         verbose_name='Slug жанра',
         unique=True,
         max_length=50,
-        validators=[slug_validator],
     )
 
     class Meta:
@@ -149,14 +145,13 @@ class Title(models.Model):
         blank=False,
         unique=False,
         max_length=256,
-        validators=[name_title_validator],
     )
     description = models.TextField(
         verbose_name='Описание произведения',
         blank=True,
         null=True,
     )
-    year = models.IntegerField(
+    year = models.SmallIntegerField(
         verbose_name='Год выпуска',
         null=False,
         blank=False,
