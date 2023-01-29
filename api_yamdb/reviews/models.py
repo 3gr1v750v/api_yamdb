@@ -8,6 +8,12 @@ from .validators import (
 )
 
 
+class UserRole(models.TextChoices):
+    USER = 'user', 'Пользователь'
+    MODERATOR = 'moderator', 'Модератор'
+    ADMIN = 'admin', 'Администратор'
+
+
 class User(AbstractUser):
     """
     Переопределение модели User. Модель расширена свойствами role и bio.
@@ -17,16 +23,6 @@ class User(AbstractUser):
     Обычный пользователь получив роль 'admin' может осуществлять управление
     пользователя через API без доступа к административной части сайта.
     """
-
-    USER = 'user'
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
-
-    USER_ROLE = [
-        (USER, 'Пользователь'),
-        (ADMIN, 'Администратор'),
-        (MODERATOR, 'Модератор'),
-    ]
 
     username = models.CharField(
         verbose_name='Пользователь',
@@ -50,10 +46,10 @@ class User(AbstractUser):
     )
 
     role = models.CharField(
-        verbose_name='Роль пользователя',
-        max_length=20,
-        choices=USER_ROLE,
-        default=USER,
+        max_length=16,
+        choices=UserRole.choices,
+        default=UserRole.USER,
+        verbose_name='Роль'
     )
 
     first_name = models.CharField(
@@ -81,17 +77,11 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        if self.role == self.ADMIN:
-            return True
-        else:
-            return False
+        return self.role == UserRole.ADMIN
 
     @property
     def is_moderator(self):
-        if self.role == self.MODERATOR:
-            return True
-        else:
-            return False
+        return self.role == UserRole.MODERATOR
 
 
 class Category(models.Model):

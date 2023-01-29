@@ -4,6 +4,7 @@ import re
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
+
 def username_validator(value):
     """
     Валидатор для проверки вводимых значений для поля username модели User.
