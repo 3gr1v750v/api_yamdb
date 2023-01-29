@@ -38,13 +38,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-def get_tokens_for_user(user):
-    """Обновление токена при повторном обращении на эндпоинт."""
-    refresh = RefreshToken.for_user(user)
-
-    return {'refresh': str(refresh), 'access': str(refresh.access_token)}
-
-
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор модели Category."""
 
@@ -132,6 +125,12 @@ class EmailAuthSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     confirmation_code = serializers.CharField(max_length=10)
 
+    def get_tokens_for_user(self, user):
+        """Обновление токена при повторном обращении на эндпоинт."""
+        refresh = RefreshToken.for_user(user)
+
+        return {'refresh': str(refresh), 'access': str(refresh.access_token)}
+
     def validate(self, data):
         username = data['username']
         user = get_object_or_404(User, username=username)
@@ -140,7 +139,7 @@ class EmailAuthSerializer(serializers.Serializer):
         confirmation_code_origin = code_generator(username)
 
         if confirmation_code == confirmation_code_origin:
-            return get_tokens_for_user(user)
+            return self.get_tokens_for_user(user)
         raise serializers.ValidationError(
             {
                 "message": (
