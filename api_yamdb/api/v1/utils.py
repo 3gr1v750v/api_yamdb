@@ -1,4 +1,10 @@
 from django.core.mail import send_mail
+from django.conf import settings
+
+
+def code_generator(username):
+    """Генератор секретного кода для получения токена."""
+    return username.encode("utf-8").hex()[:10]
 
 
 def confirmation_code_email(email, confirmation_code):
@@ -13,7 +19,7 @@ def confirmation_code_email(email, confirmation_code):
     send_mail(
         email_subject,
         email_body,
-        'no-reply@yamdb.com',
+        settings.DEFAULT_EMAIL_SENDER_ADDRESS,
         [email],
         fail_silently=False,
     )

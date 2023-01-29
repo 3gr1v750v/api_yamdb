@@ -6,9 +6,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from reviews.models import Category, Genre, Review, Title, User
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
 
-from .email import confirmation_code_email
+from .utils import confirmation_code_email
 from .filters import TitleFilter
 from .permissions import (
     IsAdminOnly,
@@ -131,7 +132,7 @@ class ConfirmationCodeView(APIView):
             confirmation_code = code_generator(username)
         if user:
             confirmation_code_email(email, confirmation_code)
-            return Response(request.data, status=status.HTTP_200_OK)
+            return Response(({'message': 'Письмо успешно отправлено'}, request.data), status=status.HTTP_200_OK)
         serializer = ConfirmationCodeSerailizer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
