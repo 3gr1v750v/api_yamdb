@@ -131,7 +131,7 @@ class ConfirmationCodeView(APIView):
             confirmation_code = code_generator(username)
         if user:
             confirmation_code_email(email, confirmation_code)
-            return Response(request.data, status=status.HTTP_200_OK)
+            return Response(({'message': 'Письмо успешно отправлено'}, request.data), status=status.HTTP_200_OK)
         serializer = ConfirmationCodeSerailizer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
