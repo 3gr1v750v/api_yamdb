@@ -3,7 +3,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import (
-    username_validator,
+    username_name_list_validator,
+    username_pattern_validation,
     year_create_validator,
 )
 
@@ -29,7 +30,9 @@ class User(AbstractUser):
         blank=False,
         unique=True,
         max_length=150,
-        validators=[username_validator],
+        validators=[
+            username_pattern_validation,
+            username_name_list_validator],
     )
 
     email = models.EmailField(
