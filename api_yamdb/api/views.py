@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from reviews.models import Category, Genre, Review, Title, User
 
-from .email import confirmation_code_email
+from .utils import confirmation_code_email
 from .filters import TitleFilter
 from .permissions import (
     IsAdminOnly,

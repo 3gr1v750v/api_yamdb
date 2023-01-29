@@ -144,3 +144,5 @@ PATH_CSV_FILES = {
     'review': os.path.join(BASE_DIR, 'static/data/review.csv'),
     'comments': os.path.join(BASE_DIR, 'static/data/comments.csv'),
 }
+
+DEFAULT_EMAIL_SENDER_ADDRESS = 'no-reply@yamdb.com'
