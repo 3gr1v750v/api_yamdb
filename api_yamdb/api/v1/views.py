@@ -1,5 +1,5 @@
-from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -10,7 +10,6 @@ from rest_framework.views import APIView
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
-from .utils import confirmation_code_email
 from .filters import TitleFilter
 from .permissions import (
     IsAdminOnly,
@@ -28,7 +27,7 @@ from .serializers import (
     TitleViewSerializer,
     UserSerializer,
 )
-from .utils import code_generator
+from .utils import code_generator, confirmation_code_email
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -133,7 +132,10 @@ class ConfirmationCodeView(APIView):
             confirmation_code = code_generator(username)
         if user:
             confirmation_code_email(email, confirmation_code)
-            return Response(({'message': 'Письмо успешно отправлено'}, request.data), status=status.HTTP_200_OK)
+            return Response(
+                ({'message': 'Письмо успешно отправлено'}, request.data),
+                status=status.HTTP_200_OK,
+            )
         serializer = ConfirmationCodeSerailizer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
@@ -206,9 +208,11 @@ class CommentViewSet(viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        review = get_object_or_404(Review,  
-                                   id=self.kwargs.get("review_id"),
-                                   title__id=self.kwargs.get("title_id"))
+        review = get_object_or_404(
+            Review,
+            id=self.kwargs.get("review_id"),
+            title__id=self.kwargs.get("title_id"),
+        )
         return review.comments.all()
 
     def perform_create(self, serializer):

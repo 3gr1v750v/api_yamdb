@@ -1,18 +1,9 @@
 import csv
 
+from django.conf import settings
 from django.core.management import BaseCommand
 from django.db import IntegrityError
-from django.conf import settings
-
-from reviews.models import (
-    Category,
-    Comment,
-    Genre,
-    GenreTitle,
-    Review,
-    Title
-)
-
+from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 from users.models import User
 
 FILES_CLASSES = {
@@ -37,8 +28,9 @@ FIELDS = {
 def open_csv_file(file_name):
     """Метод считывания csv-файлов."""
     try:
-        with (open(settings.PATH_CSV_FILES[file_name], encoding='utf-8')) \
-                as file:
+        with (
+            open(settings.PATH_CSV_FILES[file_name], encoding='utf-8')
+        ) as file:
             return list(csv.reader(file))
 
     except FileNotFoundError:
@@ -68,8 +60,10 @@ def load_csv(file_name, class_name):
             table = class_name(**data_csv)
             table.save()
         except (ValueError, IntegrityError) as error:
-            print(f'Ошибка в загружаемых данных. {error}. '
-                  f'Данные в таблицу {class_name.__qualname__} не загружены.')
+            print(
+                f'Ошибка в загружаемых данных. {error}. '
+                f'Данные в таблицу {class_name.__qualname__} не загружены.'
+            )
             break
     print(f'Данные в таблицу {class_name.__qualname__} загружены.')
 

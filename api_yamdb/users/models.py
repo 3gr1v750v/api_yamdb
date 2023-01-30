@@ -28,9 +28,7 @@ class User(AbstractUser):
         blank=False,
         unique=True,
         max_length=150,
-        validators=[
-            username_pattern_validation,
-            username_name_list_validator],
+        validators=[username_pattern_validation, username_name_list_validator],
     )
 
     email = models.EmailField(
@@ -50,7 +48,7 @@ class User(AbstractUser):
         max_length=16,
         choices=UserRole.choices,
         default=UserRole.USER,
-        verbose_name='Роль'
+        verbose_name='Роль',
     )
 
     first_name = models.CharField(
