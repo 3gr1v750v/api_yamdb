@@ -1,11 +1,12 @@
-import datetime
-
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.utils import timezone
+
 
 def year_create_validator(value):
     """
     Валидатор для проверки года выпуска произведения.
     """
-    if value > datetime.datetime.astimezone(settings.TIME_ZONE).year:
+    timezone.activate(settings.TIME_ZONE)
+    if value > timezone.now().year:
         raise ValidationError('Год выпуска не может быть больше текущего.')
