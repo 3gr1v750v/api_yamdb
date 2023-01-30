@@ -137,13 +137,13 @@ SIMPLE_JWT = {
 }
 
 PATH_CSV_FILES = {
-    'category': os.path.join(BASE_DIR, 'static/data/category.csv'),
-    'genre': os.path.join(BASE_DIR, 'static/data/genre.csv'),
-    'titles': os.path.join(BASE_DIR, 'static/data/titles.csv'),
-    'genre_title': os.path.join(BASE_DIR, 'static/data/genre_title.csv'),
-    'users': os.path.join(BASE_DIR, 'static/data/users.csv'),
-    'review': os.path.join(BASE_DIR, 'static/data/review.csv'),
-    'comments': os.path.join(BASE_DIR, 'static/data/comments.csv'),
+    'category': str(BASE_DIR.joinpath('static/data/category.csv')),
+    'genre': str(BASE_DIR.joinpath('static/data/genre.csv')),
+    'titles': str(BASE_DIR.joinpath('static/data/titles.csv')),
+    'genre_title': str(BASE_DIR.joinpath('static/data/genre_title.csv')),
+    'users': str(BASE_DIR.joinpath('static/data/users.csv')),
+    'review': str(BASE_DIR.joinpath('static/data/review.csv')),
+    'comments': str(BASE_DIR.joinpath('static/data/comments.csv')),
 }
 
 DEFAULT_EMAIL_SENDER_ADDRESS = 'no-reply@yamdb.com'
