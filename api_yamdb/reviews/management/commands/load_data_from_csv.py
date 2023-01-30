@@ -10,9 +10,10 @@ from reviews.models import (
     Genre,
     GenreTitle,
     Review,
-    Title,
-    User
+    Title
 )
+
+from users.models import User
 
 FILES_CLASSES = {
     'category': Category,

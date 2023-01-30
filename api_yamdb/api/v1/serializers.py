@@ -62,7 +62,7 @@ class TitleViewSerializer(serializers.ModelSerializer):
     category = CategorySerializer(
         required=True,
     )
-    rating = serializers.SerializerMethodField()
+    rating = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Title

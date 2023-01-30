@@ -117,7 +117,7 @@ pip install -r requirements.txt
 4. Выполните миграции:
 
 ```
-python manage.py migrate
+python manage.py migrate --run-syncdb
 ```
 5. Загрузите тестовые данные:
 
