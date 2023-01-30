@@ -1,47 +1,12 @@
-import datetime
-import re
-
 from django.core.exceptions import ValidationError
-
-
-def username_validator(value):
-    """
-    Валидатор для проверки вводимых значений для поля username модели User.
-    """
-    pattern = r"^[\w.@+-]+\Z"
-    prohibited_usernames = ('me',)
-    if not re.search(pattern, value):
-        raise ValidationError('Только буквы, цифры и @/./+/-/_ .')
-    elif value in prohibited_usernames:
-        raise ValidationError('Данное имя пользователя нельзя использовать.')
+from django.conf import settings
+from django.utils import timezone
 
 
 def year_create_validator(value):
     """
     Валидатор для проверки года выпуска произведения.
     """
-    if value > datetime.datetime.now().year:
+    timezone.activate(settings.TIME_ZONE)
+    if value > timezone.now().year:
         raise ValidationError('Год выпуска не может быть больше текущего.')
-
-
-def slug_validator(value):
-    """
-    Валидатор для проверки slug.
-    """
-    pattern = '^[-a-zA-Z0-9_]+$'
-    if not re.search(pattern, value):
-        raise ValidationError(
-            'Только буквы латинского алфавита,'
-            ' цифры, тире и нижнее подчеркивание'
-        )
-
-
-def name_title_validator(value):
-    """
-    Валидатор для проверки длинны названия произведения.
-    """
-    max_length = 256
-    if len(value) > max_length:
-        raise ValidationError(
-            'Длинна названия не должна превышать ' '256 символов.'
-        )

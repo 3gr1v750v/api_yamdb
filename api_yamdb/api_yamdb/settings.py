@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'reviews.apps.ReviewsConfig',
+    'users.apps.UsersConfig',
     'api.apps.ApiConfig',
     'django_filters',
 ]
@@ -111,7 +112,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-AUTH_USER_MODEL = 'reviews.User'
+AUTH_USER_MODEL = 'users.User'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
@@ -128,9 +129,21 @@ REST_FRAMEWORK = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+EMAIL_FILE_PATH = str(BASE_DIR.joinpath('sent_emails'))
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+PATH_CSV_FILES = {
+    'category': str(BASE_DIR.joinpath('static/data/category.csv')),
+    'genre': str(BASE_DIR.joinpath('static/data/genre.csv')),
+    'titles': str(BASE_DIR.joinpath('static/data/titles.csv')),
+    'genre_title': str(BASE_DIR.joinpath('static/data/genre_title.csv')),
+    'users': str(BASE_DIR.joinpath('static/data/users.csv')),
+    'review': str(BASE_DIR.joinpath('static/data/review.csv')),
+    'comments': str(BASE_DIR.joinpath('static/data/comments.csv')),
+}
+
+DEFAULT_EMAIL_SENDER_ADDRESS = 'no-reply@yamdb.com'
