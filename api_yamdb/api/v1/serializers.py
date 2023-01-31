@@ -62,7 +62,7 @@ class TitleViewSerializer(serializers.ModelSerializer):
     category = CategorySerializer(
         required=True,
     )
-    rating = serializers.FloatField(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
@@ -85,17 +85,8 @@ class TitleViewSerializer(serializers.ModelSerializer):
             'category',
         )
 
-    def get_rating(self, obj):
-        rating = 0
-        reviews = Review.objects.filter(title=obj)
-        if reviews:
-            for review in reviews:
-                rating += review.score
-            return rating // reviews.count()
-        return None
 
-
-class TitleSerializer(serializers.ModelSerializer):
+class TitleCreateUpdateSerializer(serializers.ModelSerializer):
     """Сериализатор модели Title (кроме метода GET)."""
 
     genre = serializers.SlugRelatedField(
@@ -103,8 +94,9 @@ class TitleSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         slug_field='slug',
     )
-    category = CategorySerializer(
-        read_only=True,
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug',
     )
 
     class Meta:
@@ -112,7 +104,7 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
 
 
-class ConfirmationCodeSerailizer(serializers.ModelSerializer):
+class ConfirmationCodeSerializer(serializers.ModelSerializer):
     """Сериализатор для отправки пользователю кода подтверждения."""
 
     class Meta:

@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from reviews.models import Category, Genre, Review, Title
@@ -20,10 +20,10 @@ from .permissions import (
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
-    ConfirmationCodeSerailizer,
+    ConfirmationCodeSerializer,
     GenreSerializer,
     ReviewSerializer,
-    TitleSerializer,
+    TitleCreateUpdateSerializer,
     TitleViewSerializer,
     UserSerializer,
 )
@@ -40,35 +40,19 @@ class TitleViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    serializer_class = TitleSerializer
+    serializer_class = TitleCreateUpdateSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     http_method_names = ['patch', 'get', 'post', 'delete']
 
-    def perform_create(self, serializer):
-        """Добавляет категорию к произведению при сохранении."""
-        serializer.save(
-            category=get_object_or_404(
-                Category, slug=self.request.data['category']
-            ),
-        )
-
-    def perform_update(self, serializer):
-        """Обновляет категорию у произведения при изменениии."""
-        serializer.save(
-            category=get_object_or_404(
-                Category, slug=self.request.data['category']
-            ),
-        )
-
     def get_serializer_class(self):
         """Определяет какой сериализатор будет использоваться
         для разных типов запроса."""
         if self.request.method == 'GET':
             return TitleViewSerializer
-        return TitleSerializer
+        return TitleCreateUpdateSerializer
 
 
 class ListCreateDestroyViewSet(
@@ -136,7 +120,7 @@ class ConfirmationCodeView(APIView):
                 ({'message': 'Письмо успешно отправлено'}, request.data),
                 status=status.HTTP_200_OK,
             )
-        serializer = ConfirmationCodeSerailizer(data=request.data)
+        serializer = ConfirmationCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
             serializer.save()
