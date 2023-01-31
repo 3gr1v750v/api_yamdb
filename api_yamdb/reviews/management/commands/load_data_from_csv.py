@@ -3,7 +3,6 @@ import csv
 from django.conf import settings
 from django.core.management import BaseCommand
 from django.db import IntegrityError
-
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 from users.models import User
 
@@ -15,14 +14,14 @@ FIELDS = {
     'review': Review,
 }
 CLASSES = [
-        Category,
-        Genre,
-        Title,
-        GenreTitle,
-        User,
-        Review,
-        Comment,
-    ]
+    Category,
+    Genre,
+    Title,
+    GenreTitle,
+    User,
+    Review,
+    Comment,
+]
 
 
 def change_foreign_values(row_data):
@@ -43,10 +42,15 @@ def load_data():
     для загрузки в базу и загрузки данных в базу.
     """
     for model_class in CLASSES:
-        with open(settings.PATH_CSV_FILES[model_class.__qualname__.lower()],
-                  encoding='utf-8') as file:
+        with open(
+            settings.PATH_CSV_FILES[model_class.__qualname__.lower()],
+            encoding='utf-8',
+        ) as file:
             try:
-                dr = csv.DictReader(file, delimiter=",", )
+                dr = csv.DictReader(
+                    file,
+                    delimiter=",",
+                )
                 to_db = []
 
                 for row in dr:
