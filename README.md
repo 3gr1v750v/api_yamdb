@@ -134,7 +134,7 @@ python manage.py runserver
 ```
 
 ## Авторы
-**Гривцов Евгений** - [https://github.com/EugeniGrivtsov](https://github.com/EugeniGrivtsov)
+**Гривцов Евгений** - [https://github.com/3gr1v750v](https://github.com/3gr1v750v)
 
 *Задачи проекта*: Система регистрации и аутентификации; права доступа; работа с токеном; система подтверждения через e-mail.
 
